@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>¡Baby Shower! - Invitación</title>
+<title>Mi baby shower y revelación 🧸🍼✨</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body {
@@ -112,7 +112,7 @@
 <body>
 
 <div id="stage">
-  <!-- El video ahora apunta de forma local. Asegúrate de guardarlo con el mismo nombre exacto -->
+  <!-- El video apunta de forma local. Asegúrate de guardarlo con el mismo nombre exacto -->
   <video id="bgVideo" src="¡Baby Shower!.mp4" playsinline preload="auto"></video>
 
   <div id="startOverlay">
@@ -125,7 +125,8 @@
     </button>
   </div>
 
-  <a id="locationBtn" class="action-btn" href="https://maps.app.goo.gl/7WuHhc2GRGhtrxqw6" target="_blank" rel="noopener">
+  <!-- Enlace de Google Maps actualizado -->
+  <a id="locationBtn" class="action-btn" href="https://www.google.com/maps/place/19%C2%B021%2754.1%22N+99%C2%B001%2751.9%22W/@19.3650188,-99.0336494,1240m/data=!3m2!1e3!4b1!4m4!3m3!8m2!3d19.3650188!4d-99.0310745?hl=es&entry=ttu&g_ep=EgoyMDI2MDcwOC4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noopener">
     <svg viewBox="0 0 24 24" fill="white"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>
     <span>Ver ubicación</span>
   </a>
@@ -144,16 +145,32 @@
   const locationBtn = document.getElementById('locationBtn');
   const confirmBtn = document.getElementById('confirmBtn');
 
-  const LOCATION_TIME = 21; // segundo en que aparece el botón de ubicación
-  const CONFIRM_TIME = 39;  // segundo en que aparece el botón de confirmación
+  // Ajustes de tiempos
+  const LOCATION_START = 21; // Segundo en que aparece
+  const LOCATION_DURATION = 12; // Duración en pantalla (aparece de segundo 21 a 33)
+  const LOCATION_END = LOCATION_START + LOCATION_DURATION;
 
-  // Posición de los botones calculada proporcionalmente al vídeo real (1080 x 1920)
-  const BTN_SPEC = {
+  const CONFIRM_START = 39; // Segundo en que aparece
+  const CONFIRM_DURATION = 10; // Duración en pantalla (aparece de segundo 39 a 49)
+  const CONFIRM_END = CONFIRM_START + CONFIRM_DURATION;
+
+  // Base común para ambos botones
+  const BTN_SPEC_BASE = {
     centerXFrac: 0.5,      // Centrado horizontal
-    centerYFrac: 0.814,    // Alrededor del 81.4% de la altura
-    widthFrac: 0.52,       // Ancho relativo al video
-    minHeightPx: 46,       // Mínimo accesible táctil
+    widthFrac: 0.52,       // Ancho del botón real
+    minHeightPx: 46,       // Alto mínimo táctil
     heightFrac: 0.045
+  };
+
+  // Especificaciones de posición ajustadas de manera individual
+  const LOCATION_SPEC = {
+    ...BTN_SPEC_BASE,
+    centerYFrac: 0.914     // Bajado un 10% (original 81.4% + 10% = 91.4%)
+  };
+
+  const CONFIRM_SPEC = {
+    ...BTN_SPEC_BASE,
+    centerYFrac: 0.924     // Bajado un 11% (original 81.4% + 11% = 92.4%)
   };
 
   let locationShown = false;
@@ -182,12 +199,12 @@
     return { left: offsetX, top: offsetY, width: renderWidth, height: renderHeight };
   }
 
-  function positionButton(btn) {
+  function positionButton(btn, spec) {
     const rect = getVideoRect();
-    const btnWidth = rect.width * BTN_SPEC.widthFrac;
-    const btnHeight = Math.max(rect.height * BTN_SPEC.heightFrac, BTN_SPEC.minHeightPx);
-    const centerX = rect.left + rect.width * BTN_SPEC.centerXFrac;
-    const centerY = rect.top + rect.height * BTN_SPEC.centerYFrac;
+    const btnWidth = rect.width * spec.widthFrac;
+    const btnHeight = Math.max(rect.height * spec.heightFrac, spec.minHeightPx);
+    const centerX = rect.left + rect.width * spec.centerXFrac;
+    const centerY = rect.top + rect.height * spec.centerYFrac;
 
     btn.style.width = btnWidth + 'px';
     btn.style.height = btnHeight + 'px';
@@ -197,8 +214,8 @@
   }
 
   function positionAllButtons() {
-    positionButton(locationBtn);
-    positionButton(confirmBtn);
+    positionButton(locationBtn, LOCATION_SPEC);
+    positionButton(confirmBtn, CONFIRM_SPEC);
   }
 
   window.addEventListener('resize', positionAllButtons);
@@ -213,7 +230,6 @@
     positionAllButtons();
     video.muted = false;
     video.play().catch(() => {
-      // Intenta reproducir con mute si el navegador de todas formas bloquea el sonido
       video.muted = true;
       video.play();
     });
@@ -222,34 +238,44 @@
   video.addEventListener('timeupdate', () => {
     const t = video.currentTime;
 
-    // Control de botón de ubicación
-    if (t >= LOCATION_TIME && !locationShown) {
-      positionButton(locationBtn);
-      locationBtn.classList.add('show');
-      locationShown = true;
-    }
-    // Control de botón de confirmación
-    if (t >= CONFIRM_TIME && !confirmShown) {
-      positionButton(confirmBtn);
-      confirmBtn.classList.add('show');
-      confirmShown = true;
+    // Control del botón de ubicación (solo visible entre segundo 21 y 33)
+    if (t >= LOCATION_START && t < LOCATION_END) {
+      if (!locationShown) {
+        positionButton(locationBtn, LOCATION_SPEC);
+        locationBtn.classList.add('show');
+        locationShown = true;
+      }
+    } else {
+      if (locationShown && !video.ended) {
+        locationBtn.classList.remove('show');
+        locationShown = false;
+      }
     }
 
-    // Ocultar si el usuario retrocede el video manualmente
-    if (t < LOCATION_TIME && locationShown) {
-      locationBtn.classList.remove('remove'); // Reset clase para ocultar
-      locationBtn.classList.remove('show');
-      locationShown = false;
-    }
-    if (t < CONFIRM_TIME && confirmShown) {
-      confirmBtn.classList.remove('show');
-      confirmShown = false;
+    // Control del botón de combinación (solo visible entre segundo 39 y 49)
+    if (t >= CONFIRM_START && t < CONFIRM_END) {
+      if (!confirmShown) {
+        positionButton(confirmBtn, CONFIRM_SPEC);
+        confirmBtn.classList.add('show');
+        confirmShown = true;
+      }
+    } else {
+      if (confirmShown && !video.ended) {
+        confirmBtn.classList.remove('show');
+        confirmShown = false;
+      }
     }
   });
 
   video.addEventListener('ended', () => {
-    if (locationShown) locationBtn.classList.add('show');
-    if (confirmShown) confirmBtn.classList.add('show');
+    // Al terminar el video se muestran ambos botones de forma permanente
+    positionButton(locationBtn, LOCATION_SPEC);
+    locationBtn.classList.add('show');
+    locationShown = true;
+
+    positionButton(confirmBtn, CONFIRM_SPEC);
+    confirmBtn.classList.add('show');
+    confirmShown = true;
   });
 
   // Intentar posicionar en la carga inicial
