@@ -27,10 +27,7 @@
     background: #FAF6F0;
   }
   #bgVideo {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    object-position: center;
+    position: absolute;
     background: #FAF6F0;
     display: block;
   }
@@ -357,6 +354,7 @@
   let confirmShown = false;
   let isDragging = false;
 
+  // Calcula las dimensiones y la compensación exacta para subir el diseño un 10%
   function getVideoRect() {
     const vw = video.videoWidth || 1080;
     const vh = video.videoHeight || 1920;
@@ -375,13 +373,22 @@
       renderWidth = cw;
       renderHeight = cw / videoRatio;
       offsetX = 0;
-      offsetY = (ch - renderHeight) / 2;
+      
+      // Calculamos la posición centrada estándar
+      const centeredOffsetY = (ch - renderHeight) / 2;
+      // Subimos todo el renderizado un 10% del alto total de la pantalla
+      const shiftUp = ch * 0.10;
+      offsetY = centeredOffsetY - shiftUp;
+      
+      // Guardavía para que en pantallas súper pequeñas no se salga por la parte superior
+      if (offsetY < 0) {
+        offsetY = 0;
+      }
     }
     return { left: offsetX, top: offsetY, width: renderWidth, height: renderHeight };
   }
 
-  function positionButton(btn, spec) {
-    const rect = getVideoRect();
+  function positionButton(btn, spec, rect) {
     const btnWidth = rect.width * spec.widthFrac;
     const btnHeight = Math.max(rect.height * spec.heightFrac, spec.minHeightPx);
     const centerX = rect.left + rect.width * spec.centerXFrac;
@@ -394,8 +401,7 @@
     btn.style.fontSize = Math.max(btnHeight * 0.34, 12) + 'px';
   }
 
-  function positionSeeker() {
-    const rect = getVideoRect();
+  function positionSeeker(rect) {
     const seekerWidth = rect.width * SEEKER_SPEC.widthFrac;
     const centerX = rect.left + rect.width * SEEKER_SPEC.centerXFrac;
     const centerY = rect.top + rect.height * SEEKER_SPEC.centerYFrac;
@@ -405,14 +411,23 @@
     seekerContainer.style.top = (centerY - 18) + 'px'; 
   }
 
-  function positionAllButtons() {
-    positionButton(locationBtn, LOCATION_SPEC);
-    positionButton(confirmBtn, CONFIRM_SPEC);
-    positionSeeker();
+  function positionAllElements() {
+    const rect = getVideoRect();
+    
+    // Aplicamos dimensiones reales directamente al vídeo para que no genere letterboxing interno del navegador
+    video.style.width = rect.width + 'px';
+    video.style.height = rect.height + 'px';
+    video.style.left = rect.left + 'px';
+    video.style.top = rect.top + 'px';
+
+    // Posicionamos los botones y barra de reproducción de manera exacta
+    positionButton(locationBtn, LOCATION_SPEC, rect);
+    positionButton(confirmBtn, CONFIRM_SPEC, rect);
+    positionSeeker(rect);
   }
 
-  window.addEventListener('resize', positionAllButtons);
-  video.addEventListener('loadedmetadata', positionAllButtons);
+  window.addEventListener('resize', positionAllElements);
+  video.addEventListener('loadedmetadata', positionAllElements);
 
   // Botón de Inicio
   playBtn.addEventListener('click', () => {
@@ -421,7 +436,7 @@
       startOverlay.style.display = 'none';
     }, 500);
     
-    positionAllButtons();
+    positionAllElements();
     seekerContainer.classList.add('show');
     
     video.muted = false;
@@ -499,10 +514,12 @@
       seekerBar.value = (t / video.duration) * 100;
     }
 
+    const rect = getVideoRect();
+
     // Botón de ubicación (19.5 a 31.5s)
     if (t >= LOCATION_START && t < LOCATION_END) {
       if (!locationShown) {
-        positionButton(locationBtn, LOCATION_SPEC);
+        positionButton(locationBtn, LOCATION_SPEC, rect);
         locationBtn.classList.add('show');
         locationShown = true;
       }
@@ -516,7 +533,7 @@
     // Botón de confirmación (37.5 a 47.5s)
     if (t >= CONFIRM_START && t < CONFIRM_END) {
       if (!confirmShown) {
-        positionButton(confirmBtn, CONFIRM_SPEC);
+        positionButton(confirmBtn, CONFIRM_SPEC, rect);
         confirmBtn.classList.add('show');
         confirmShown = true;
       }
@@ -529,16 +546,17 @@
   });
 
   video.addEventListener('ended', () => {
-    positionButton(locationBtn, LOCATION_SPEC);
+    const rect = getVideoRect();
+    positionButton(locationBtn, LOCATION_SPEC, rect);
     locationBtn.classList.add('show');
     locationShown = true;
 
-    positionButton(confirmBtn, CONFIRM_SPEC);
+    positionButton(confirmBtn, CONFIRM_SPEC, rect);
     confirmBtn.classList.add('show');
     confirmShown = true;
   });
 
-  positionAllButtons();
+  positionAllElements();
 </script>
 
 </body>
