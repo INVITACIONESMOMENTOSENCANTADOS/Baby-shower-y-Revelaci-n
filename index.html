@@ -30,11 +30,10 @@
     background: #000;
     display: block;
   }
-  /* Overlay de inicio para permitir el play (autoplay con sonido requiere interacción) */
   #startOverlay {
     position: absolute;
     inset: 0;
-    background: rgba(0,0,0,0.75);
+    background: rgba(0,0,0,0.8);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -42,12 +41,15 @@
     z-index: 50;
     text-align: center;
     padding: 20px;
+    backdrop-filter: blur(5px);
+    transition: opacity 0.5s ease;
   }
   #startOverlay h1 {
     color: #fff;
-    font-size: 1.5rem;
-    margin-bottom: 20px;
+    font-size: 1.8rem;
+    margin-bottom: 24px;
     font-weight: 400;
+    letter-spacing: 1px;
   }
   #startOverlay .hearts {
     font-size: 1.8rem;
@@ -59,12 +61,20 @@
     border: none;
     padding: 16px 40px;
     border-radius: 50px;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     cursor: pointer;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-    transition: transform 0.2s ease;
+    box-shadow: 0 4px 20px rgba(111, 78, 55, 0.4);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
   }
-  #playBtn:hover { transform: scale(1.05); }
+  #playBtn:hover { 
+    transform: scale(1.05);
+    background: #845e43;
+    box-shadow: 0 6px 24px rgba(111, 78, 55, 0.6);
+  }
 
   .action-btn {
     position: absolute;
@@ -79,8 +89,8 @@
     background: #6F4E37;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.4s ease;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+    transition: opacity 0.5s ease, transform 0.2s ease;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.45);
     z-index: 20;
     white-space: nowrap;
     overflow: hidden;
@@ -89,9 +99,12 @@
     opacity: 1;
     pointer-events: auto;
   }
+  .action-btn:active {
+    transform: scale(0.95);
+  }
   .action-btn svg {
-    width: 1.1em;
-    height: 1.1em;
+    width: 1.2em;
+    height: 1.2em;
     flex-shrink: 0;
   }
 </style>
@@ -99,11 +112,17 @@
 <body>
 
 <div id="stage">
+  <!-- El video ahora apunta de forma local. Asegúrate de guardarlo con el mismo nombre exacto -->
   <video id="bgVideo" src="¡Baby Shower!.mp4" playsinline preload="auto"></video>
 
   <div id="startOverlay">
     <h1><span class="hearts">🤎</span> ¡Baby Shower! <span class="hearts">🤎</span></h1>
-    <button id="playBtn">▶ Ver invitación</button>
+    <button id="playBtn">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="display:inline-block; vertical-align:middle;">
+        <path d="M8 5v14l11-7z"/>
+      </svg>
+      Ver invitación
+    </button>
   </div>
 
   <a id="locationBtn" class="action-btn" href="https://maps.app.goo.gl/7WuHhc2GRGhtrxqw6" target="_blank" rel="noopener">
@@ -128,13 +147,12 @@
   const LOCATION_TIME = 21; // segundo en que aparece el botón de ubicación
   const CONFIRM_TIME = 39;  // segundo en que aparece el botón de confirmación
 
-  // Posición del botón "dibujado" dentro del video, medida sobre el video original
-  // (en fracción del ancho/alto real del video: 1080 x 1920)
+  // Posición de los botones calculada proporcionalmente al vídeo real (1080 x 1920)
   const BTN_SPEC = {
-    centerXFrac: 0.5,      // centrado horizontalmente
-    centerYFrac: 0.814,    // ~81.4% de la altura del video
-    widthFrac: 0.52,       // ancho del botón real (52% del ancho del video)
-    minHeightPx: 46,       // alto mínimo táctil
+    centerXFrac: 0.5,      // Centrado horizontal
+    centerYFrac: 0.814,    // Alrededor del 81.4% de la altura
+    widthFrac: 0.52,       // Ancho relativo al video
+    minHeightPx: 46,       // Mínimo accesible táctil
     heightFrac: 0.045
   };
 
@@ -149,6 +167,7 @@
     const videoRatio = vw / vh;
     const containerRatio = cw / ch;
     let renderWidth, renderHeight, offsetX, offsetY;
+
     if (containerRatio > videoRatio) {
       renderHeight = ch;
       renderWidth = ch * videoRatio;
@@ -186,10 +205,15 @@
   video.addEventListener('loadedmetadata', positionAllButtons);
 
   playBtn.addEventListener('click', () => {
-    startOverlay.style.display = 'none';
+    startOverlay.style.opacity = '0';
+    setTimeout(() => {
+      startOverlay.style.display = 'none';
+    }, 500);
+    
     positionAllButtons();
     video.muted = false;
     video.play().catch(() => {
+      // Intenta reproducir con mute si el navegador de todas formas bloquea el sonido
       video.muted = true;
       video.play();
     });
@@ -198,18 +222,22 @@
   video.addEventListener('timeupdate', () => {
     const t = video.currentTime;
 
+    // Control de botón de ubicación
     if (t >= LOCATION_TIME && !locationShown) {
       positionButton(locationBtn);
       locationBtn.classList.add('show');
       locationShown = true;
     }
+    // Control de botón de confirmación
     if (t >= CONFIRM_TIME && !confirmShown) {
       positionButton(confirmBtn);
       confirmBtn.classList.add('show');
       confirmShown = true;
     }
 
+    // Ocultar si el usuario retrocede el video manualmente
     if (t < LOCATION_TIME && locationShown) {
+      locationBtn.classList.remove('remove'); // Reset clase para ocultar
       locationBtn.classList.remove('show');
       locationShown = false;
     }
@@ -224,7 +252,7 @@
     if (confirmShown) confirmBtn.classList.add('show');
   });
 
-  // Posiciona apenas se conocen las dimensiones reales del video
+  // Intentar posicionar en la carga inicial
   positionAllButtons();
 </script>
 
