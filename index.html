@@ -110,6 +110,62 @@
     flex-shrink: 0;
   }
 
+  /* Contenedor e input de la barra de progreso */
+  .seeker-container {
+    position: absolute;
+    z-index: 30;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 0; /* Mayor área de toque vertical */
+  }
+  .seeker-container.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .seeker-bar {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.35);
+    outline: none;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  .seeker-bar::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #6F4E37;
+    border: 2px solid #fff;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    transition: transform 0.1s;
+  }
+  .seeker-bar::-webkit-slider-thumb:hover {
+    transform: scale(1.25);
+  }
+  .seeker-bar::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #6F4E37;
+    border: 2px solid #fff;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    transition: transform 0.1s;
+  }
+  .seeker-bar::-moz-range-thumb:hover {
+    transform: scale(1.25);
+  }
+
   /* Estilos para el Modal de Nombre */
   #nameModal {
     display: none;
@@ -224,11 +280,16 @@
     <span>Ver ubicación</span>
   </a>
 
-  <!-- Botón de Confirmación modificado para activar el modal -->
+  <!-- Botón de Confirmación -->
   <button id="confirmBtn" class="action-btn">
     <svg viewBox="0 0 24 24" fill="white"><path d="M20.52 3.48A11.9 11.9 0 0 0 12.04 0C5.5 0 .2 5.3.2 11.85c0 2.09.55 4.13 1.6 5.93L0 24l6.4-1.68a11.8 11.8 0 0 0 5.63 1.43h.01c6.54 0 11.85-5.3 11.85-11.85 0-3.17-1.24-6.15-3.37-8.42zM12.04 21.4a9.5 9.5 0 0 1-4.85-1.33l-.35-.21-3.8 1 1.01-3.7-.23-.38a9.5 9.5 0 1 1 8.22 4.62zm5.2-7.13c-.28-.14-1.67-.82-1.93-.92-.26-.1-.45-.14-.64.14-.19.28-.74.92-.9 1.1-.17.19-.33.21-.61.07-.28-.14-1.18-.43-2.24-1.38-.83-.74-1.39-1.65-1.55-1.93-.16-.28-.02-.43.12-.57.13-.13.28-.33.42-.5.14-.17.19-.28.28-.47.09-.19.05-.35-.02-.5-.07-.14-.64-1.54-.87-2.11-.23-.55-.47-.48-.64-.49-.17-.01-.36-.01-.55-.01-.19 0-.5.07-.76.35-.26.28-1 1-1 2.42 0 1.43 1.02 2.8 1.16 3 .14.19 2 3.05 4.84 4.28.68.29 1.2.47 1.62.6.68.22 1.3.19 1.79.11.55-.08 1.67-.68 1.9-1.34.24-.66.24-1.22.17-1.34-.07-.12-.26-.19-.54-.33z"/></svg>
     <span>Confirmar asistencia</span>
   </button>
+
+  <!-- Contenedor de la barra de progreso -->
+  <div id="seekerContainer" class="seeker-container">
+    <input type="range" id="seekerBar" class="seeker-bar" min="0" max="100" value="0">
+  </div>
 
   <!-- Modal para pedir el nombre -->
   <div id="nameModal">
@@ -252,42 +313,53 @@
   const locationBtn = document.getElementById('locationBtn');
   const confirmBtn = document.getElementById('confirmBtn');
 
+  // Seeker elements
+  const seekerContainer = document.getElementById('seekerContainer');
+  const seekerBar = document.getElementById('seekerBar');
+
   // Modal Elements
   const nameModal = document.getElementById('nameModal');
   const guestNameInput = document.getElementById('guestName');
   const cancelModalBtn = document.getElementById('cancelModalBtn');
   const submitNameBtn = document.getElementById('submitNameBtn');
 
-  // Ajustes de tiempos (Adelantados 1.5 segundos)
-  const LOCATION_START = 19.5;  // Aparece en el segundo 19.5 (antes 21)
-  const LOCATION_DURATION = 12; // Duración de 12 segundos
-  const LOCATION_END = LOCATION_START + LOCATION_DURATION; // Desaparece en el segundo 31.5
+  // Ajustes de tiempos
+  const LOCATION_START = 19.5;  
+  const LOCATION_DURATION = 12; 
+  const LOCATION_END = LOCATION_START + LOCATION_DURATION; 
 
-  const CONFIRM_START = 37.5;   // Aparece en el segundo 37.5 (antes 39)
-  const CONFIRM_DURATION = 10;  // Duración de 10 segundos
-  const CONFIRM_END = CONFIRM_START + CONFIRM_DURATION; // Desaparece en el segundo 47.5
+  const CONFIRM_START = 37.5;   
+  const CONFIRM_DURATION = 10;  
+  const CONFIRM_END = CONFIRM_START + CONFIRM_DURATION; 
 
-  // Base común para ambos botones
+  // Base común para los elementos responsivos
   const BTN_SPEC_BASE = {
-    centerXFrac: 0.5,      // Centrado horizontal
-    widthFrac: 0.52,       // Ancho del botón real
-    minHeightPx: 46,       // Alto mínimo táctil
+    centerXFrac: 0.5,      
+    widthFrac: 0.52,       
+    minHeightPx: 46,       
     heightFrac: 0.045
   };
 
-  // Especificaciones de posición ajustadas de manera individual
   const LOCATION_SPEC = {
     ...BTN_SPEC_BASE,
-    centerYFrac: 0.914     // Bajado un 10%
+    centerYFrac: 0.914     
   };
 
   const CONFIRM_SPEC = {
     ...BTN_SPEC_BASE,
-    centerYFrac: 0.924     // Bajado un 11%
+    centerYFrac: 0.924     
+  };
+
+  // Posición de la barra de progreso (Centrada al 96.5% de la altura de video)
+  const SEEKER_SPEC = {
+    centerXFrac: 0.5,
+    centerYFrac: 0.965,
+    widthFrac: 0.82
   };
 
   let locationShown = false;
   let confirmShown = false;
+  let isDragging = false;
 
   function getVideoRect() {
     const vw = video.videoWidth || 1080;
@@ -326,9 +398,21 @@
     btn.style.fontSize = Math.max(btnHeight * 0.34, 12) + 'px';
   }
 
+  function positionSeeker() {
+    const rect = getVideoRect();
+    const seekerWidth = rect.width * SEEKER_SPEC.widthFrac;
+    const centerX = rect.left + rect.width * SEEKER_SPEC.centerXFrac;
+    const centerY = rect.top + rect.height * SEEKER_SPEC.centerYFrac;
+
+    seekerContainer.style.width = seekerWidth + 'px';
+    seekerContainer.style.left = (centerX - seekerWidth / 2) + 'px';
+    seekerContainer.style.top = (centerY - 18) + 'px'; // Centrado en su área de hit vertical
+  }
+
   function positionAllButtons() {
     positionButton(locationBtn, LOCATION_SPEC);
     positionButton(confirmBtn, CONFIRM_SPEC);
+    positionSeeker();
   }
 
   window.addEventListener('resize', positionAllButtons);
@@ -342,6 +426,8 @@
     }, 500);
     
     positionAllButtons();
+    seekerContainer.classList.add('show');
+    
     video.muted = false;
     video.play().catch(() => {
       video.muted = true;
@@ -349,49 +435,60 @@
     });
   });
 
+  // Seeker Bar drag / interact control
+  seekerBar.addEventListener('input', () => {
+    isDragging = true;
+    if (video.duration) {
+      video.currentTime = (seekerBar.value / 100) * video.duration;
+    }
+  });
+
+  const stopDrag = () => {
+    isDragging = false;
+  };
+
+  seekerBar.addEventListener('change', stopDrag);
+  seekerBar.addEventListener('mouseup', stopDrag);
+  seekerBar.addEventListener('touchend', stopDrag);
+
   // Eventos de la ventana modal de Confirmación
   confirmBtn.addEventListener('click', (e) => {
     e.preventDefault();
-    video.pause(); // Pausamos el video para que el usuario pueda escribir tranquilamente
+    video.pause(); 
     nameModal.classList.add('show-modal');
     guestNameInput.focus();
   });
 
   cancelModalBtn.addEventListener('click', () => {
     nameModal.classList.remove('show-modal');
-    guestNameInput.value = ''; // Reseteamos el campo
+    guestNameInput.value = ''; 
     guestNameInput.style.borderColor = '#ddd';
-    video.play(); // Reanudamos el video
+    video.play(); 
   });
 
   submitNameBtn.addEventListener('click', () => {
     const name = guestNameInput.value.trim();
     if (!name) {
-      guestNameInput.style.borderColor = '#ff4d4d'; // Borde rojo si está vacío
+      guestNameInput.style.borderColor = '#ff4d4d'; 
       guestNameInput.focus();
       return;
     }
 
-    // Estructuramos el mensaje de WhatsApp incluyendo el nombre del invitado
     const baseText = `¡Hola! Confirmo mi asistencia al Baby Shower 🍼✨. Mi nombre es: ${name} 🧸`;
     const waUrl = `https://wa.me/5215640410053?text=${encodeURIComponent(baseText)}`;
     
-    // Abre el enlace en una nueva pestaña
     window.open(waUrl, '_blank');
     
-    // Cerramos el modal, reseteamos el input y reanudamos el video
     nameModal.classList.remove('show-modal');
     guestNameInput.value = '';
     guestNameInput.style.borderColor = '#ddd';
     video.play();
   });
 
-  // Limpiar el borde rojo del input si el usuario vuelve a escribir
   guestNameInput.addEventListener('input', () => {
     guestNameInput.style.borderColor = '#ddd';
   });
 
-  // También se puede presionar Enter en el input para confirmar
   guestNameInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
       submitNameBtn.click();
@@ -401,6 +498,11 @@
   // Línea de tiempo para mostrar y ocultar botones
   video.addEventListener('timeupdate', () => {
     const t = video.currentTime;
+
+    // Actualiza la posición del seeker progresivamente si no se está arrastrando manualmente
+    if (!isDragging && video.duration) {
+      seekerBar.value = (t / video.duration) * 100;
+    }
 
     // Control del botón de ubicación (19.5 a 31.5 segundos)
     if (t >= LOCATION_START && t < LOCATION_END) {
@@ -432,7 +534,6 @@
   });
 
   video.addEventListener('ended', () => {
-    // Al terminar el video se muestran ambos botones de forma permanente
     positionButton(locationBtn, LOCATION_SPEC);
     locationBtn.classList.add('show');
     locationShown = true;
@@ -442,7 +543,6 @@
     confirmShown = true;
   });
 
-  // Intentar posicionar en la carga inicial
   positionAllButtons();
 </script>
 
