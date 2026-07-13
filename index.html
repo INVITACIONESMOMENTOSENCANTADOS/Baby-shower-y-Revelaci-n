@@ -9,31 +9,36 @@
   html, body {
     height: 100%;
     width: 100%;
-    background: #000;
+    /* Color de fondo crema cálido y elegante en vez de negro */
+    background: #FAF6F0;
     font-family: 'Segoe UI', Arial, sans-serif;
     overflow: hidden;
   }
+  
   #stage {
     position: relative;
     width: 100vw;
+    /* dvh ajusta el alto real en celulares evitando el hueco arriba por barras de navegación */
     height: 100vh;
+    height: 100dvh; 
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #000;
+    background: #FAF6F0;
   }
   #bgVideo {
     width: 100%;
     height: 100%;
     object-fit: contain;
     object-position: center;
-    background: #000;
+    background: #FAF6F0;
     display: block;
   }
+
   #startOverlay {
     position: absolute;
     inset: 0;
-    background: rgba(0,0,0,0.8);
+    background: rgba(250, 246, 240, 0.9); /* Fondo crema translúcido a juego */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -41,19 +46,18 @@
     z-index: 50;
     text-align: center;
     padding: 20px;
-    backdrop-filter: blur(5px);
+    backdrop-filter: blur(8px);
     transition: opacity 0.5s ease;
   }
   #startOverlay h1 {
-    color: #fff;
+    color: #6F4E37; /* Café para combinar */
     font-size: 1.8rem;
     margin-bottom: 24px;
-    font-weight: 400;
+    font-weight: 600;
     letter-spacing: 1px;
   }
   #startOverlay .hearts {
     font-size: 1.8rem;
-    filter: sepia(1) saturate(2) hue-rotate(-10deg) brightness(0.85);
   }
   #playBtn {
     background: #6F4E37;
@@ -63,7 +67,7 @@
     border-radius: 50px;
     font-size: 1.2rem;
     cursor: pointer;
-    box-shadow: 0 4px 20px rgba(111, 78, 55, 0.4);
+    box-shadow: 0 4px 20px rgba(111, 78, 55, 0.3);
     transition: all 0.3s ease;
     display: flex;
     align-items: center;
@@ -73,7 +77,7 @@
   #playBtn:hover { 
     transform: scale(1.05);
     background: #845e43;
-    box-shadow: 0 6px 24px rgba(111, 78, 55, 0.6);
+    box-shadow: 0 6px 24px rgba(111, 78, 55, 0.5);
   }
 
   .action-btn {
@@ -90,7 +94,7 @@
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.5s ease, transform 0.2s ease;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+    box-shadow: 0 6px 18px rgba(111, 78, 55, 0.3);
     z-index: 20;
     white-space: nowrap;
     overflow: hidden;
@@ -110,7 +114,6 @@
     flex-shrink: 0;
   }
 
-  /* Contenedor e input de la barra de progreso */
   .seeker-container {
     position: absolute;
     z-index: 30;
@@ -120,7 +123,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 10px 0; /* Mayor área de toque vertical */
+    padding: 10px 0;
   }
   .seeker-container.show {
     opacity: 1;
@@ -132,7 +135,7 @@
     width: 100%;
     height: 6px;
     border-radius: 10px;
-    background: rgba(255, 255, 255, 0.35);
+    background: rgba(111, 78, 55, 0.25); /* Línea café suave */
     outline: none;
     cursor: pointer;
     transition: background 0.3s;
@@ -146,7 +149,7 @@
     background: #6F4E37;
     border: 2px solid #fff;
     cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    box-shadow: 0 2px 8px rgba(111, 78, 55, 0.4);
     transition: transform 0.1s;
   }
   .seeker-bar::-webkit-slider-thumb:hover {
@@ -159,19 +162,15 @@
     background: #6F4E37;
     border: 2px solid #fff;
     cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    box-shadow: 0 2px 8px rgba(111, 78, 55, 0.4);
     transition: transform 0.1s;
   }
-  .seeker-bar::-moz-range-thumb:hover {
-    transform: scale(1.25);
-  }
 
-  /* Estilos para el Modal de Nombre */
   #nameModal {
     display: none;
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.85);
+    background: rgba(111, 78, 55, 0.4); /* Fondo translúcido café */
     backdrop-filter: blur(8px);
     z-index: 100;
     align-items: center;
@@ -186,7 +185,7 @@
     max-width: 400px;
     width: 100%;
     text-align: center;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+    box-shadow: 0 15px 35px rgba(111, 78, 55, 0.15);
     border: 3px solid #6F4E37;
     transform: scale(0.9);
     transition: transform 0.3s ease;
@@ -213,7 +212,7 @@
     width: 100%;
     padding: 14px 20px;
     border-radius: 50px;
-    border: 2px solid #ddd;
+    border: 2px solid #E6DCD3;
     font-size: 1rem;
     margin-bottom: 20px;
     outline: none;
@@ -239,11 +238,11 @@
     transition: background 0.2s, transform 0.1s;
   }
   .modal-btn-cancel {
-    background: #f0f0f0;
-    color: #555;
+    background: #F4EFEA;
+    color: #6F4E37;
   }
   .modal-btn-cancel:hover {
-    background: #e5e5e5;
+    background: #E6DCD3;
   }
   .modal-btn-confirm {
     background: #6F4E37;
@@ -253,9 +252,6 @@
   }
   .modal-btn-confirm:hover {
     background: #845e43;
-  }
-  .modal-btn:active {
-    transform: scale(0.97);
   }
 </style>
 </head>
@@ -350,7 +346,7 @@
     centerYFrac: 0.924     
   };
 
-  // Posición de la barra de progreso (Centrada al 96.5% de la altura de video)
+  // Posición de la barra de progreso (Centrada al 96.5% de la altura del video)
   const SEEKER_SPEC = {
     centerXFrac: 0.5,
     centerYFrac: 0.965,
@@ -406,7 +402,7 @@
 
     seekerContainer.style.width = seekerWidth + 'px';
     seekerContainer.style.left = (centerX - seekerWidth / 2) + 'px';
-    seekerContainer.style.top = (centerY - 18) + 'px'; // Centrado en su área de hit vertical
+    seekerContainer.style.top = (centerY - 18) + 'px'; 
   }
 
   function positionAllButtons() {
@@ -435,7 +431,7 @@
     });
   });
 
-  // Seeker Bar drag / interact control
+  // Control de arrastre del Seeker Bar
   seekerBar.addEventListener('input', () => {
     isDragging = true;
     if (video.duration) {
@@ -462,7 +458,7 @@
   cancelModalBtn.addEventListener('click', () => {
     nameModal.classList.remove('show-modal');
     guestNameInput.value = ''; 
-    guestNameInput.style.borderColor = '#ddd';
+    guestNameInput.style.borderColor = '#E6DCD3';
     video.play(); 
   });
 
@@ -481,12 +477,12 @@
     
     nameModal.classList.remove('show-modal');
     guestNameInput.value = '';
-    guestNameInput.style.borderColor = '#ddd';
+    guestNameInput.style.borderColor = '#E6DCD3';
     video.play();
   });
 
   guestNameInput.addEventListener('input', () => {
-    guestNameInput.style.borderColor = '#ddd';
+    guestNameInput.style.borderColor = '#E6DCD3';
   });
 
   guestNameInput.addEventListener('keypress', (e) => {
@@ -495,16 +491,15 @@
     }
   });
 
-  // Línea de tiempo para mostrar y ocultar botones
   video.addEventListener('timeupdate', () => {
     const t = video.currentTime;
 
-    // Actualiza la posición del seeker progresivamente si no se está arrastrando manualmente
+    // Actualiza la barra si no se está interactuando manualmente
     if (!isDragging && video.duration) {
       seekerBar.value = (t / video.duration) * 100;
     }
 
-    // Control del botón de ubicación (19.5 a 31.5 segundos)
+    // Botón de ubicación (19.5 a 31.5s)
     if (t >= LOCATION_START && t < LOCATION_END) {
       if (!locationShown) {
         positionButton(locationBtn, LOCATION_SPEC);
@@ -518,7 +513,7 @@
       }
     }
 
-    // Control del botón de confirmación (37.5 a 47.5 segundos)
+    // Botón de confirmación (37.5 a 47.5s)
     if (t >= CONFIRM_START && t < CONFIRM_END) {
       if (!confirmShown) {
         positionButton(confirmBtn, CONFIRM_SPEC);
